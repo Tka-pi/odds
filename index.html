@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日付選択</title>
+</head>
+<body>
+    <label for="date">日付:</label>
+    <input type="date" id="date">
+
+    <script>
+        // 現在の日付を取得
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = ('0' + (today.getMonth() + 1)).slice(-2);
+        const day = ('0' + today.getDate()).slice(-2);
+        const formattedDate = year + '-' + month + '-' + day;
+
+        // 日付の初期値を設定
+        const dateInput = document.getElementById('date');
+        dateInput.value = formattedDate;
+    </script>
+
+    <button id="execute">実行</button>
+
+    <script src="analyzer.js"></script>
+
+
+</body>
+</html>
