@@ -109,7 +109,7 @@
 <div id="Title"></div>
 <div class="GridAB" id="GridAB"></div>
 <div>逆張り定数</div>
-<input type="range" id="slider" min="0" max="0.03" step="0.00025" value="0">
+<input type="range" id="slider" min="0" max="5" step="0.05" value="0">
 
 <form>
     <label for="inputA">上位人気一覧：</label><br>
@@ -130,13 +130,11 @@
     let GridB;
     let BoteFuku=[];
     let N_uma = 0;
+    let N_all = 0;
     let BBBsum = 0;
     let TableA_Odds_and_Name=[];
-    let TripleOdds = Array.from({ length: size }, () =>
-        Array.from({ length: size }, () =>
-            Array(size).fill(0)
-        )
-    );
+    // Mapを使用してデータを格納
+    const tripleOddsMap = new Map();
 
     function createGridA() {
         const GridA = document.createElement('div');
@@ -233,10 +231,6 @@
         return GridB;
     }
 
-    ()=>{
-
-    }
-
     window.onload = function() {
         //グリッド生成
         const GridAB = document.querySelector(".GridAB");
@@ -251,11 +245,11 @@
         let timer;
         document.getElementById('inputA').addEventListener('input', () => {
             clearTimeout(timer);
-            timer = setTimeout(processInputA, 3000);
+            timer = setTimeout(processInputA, 500);
         });
         document.getElementById('inputB').addEventListener('input', () => {
             clearTimeout(timer);
-            timer = setTimeout(processInputB, 3000);
+            timer = setTimeout(processInputB, 500);
         });
         GridB.addEventListener('click', (event) => {
             if (event.target.classList.contains('grid-itemB')) {
@@ -399,6 +393,7 @@
         TableA_Odds_and_Name.sort((a, b) => a[0] - b[0]);
         console.log(TableA_Odds_and_Name);
         N_uma=TableA_Odds_and_Name.length;
+        N_all = N_uma * (N_uma - 1) * (N_uma - 2) / 6;
 
         //タイトル記述
         const match_Title = regex_Title.exec(input);
@@ -469,24 +464,30 @@
     }
 
     function processInputB() {
+        // 入力テキストの取得
         const input = document.getElementById('inputB').value;
-        const regex = /オッズを見て個別に選択全選択全解除\n選択\n([\s\S]+?)\n選択済み/;
-        const match = input.match(regex);
 
-        //３連複を配列に格納
+        // メインの正規表現マッチング
+        const match = input.match(/オッズを見て個別に選択全選択全解除\n選択\n([\s\S]+?)\n選択済み/);
+
         if (match) {
+            // 内部テキストの取得
             const innerText = match[1];
             const innerRegex = /(\d+)\n\s\s\n(\d+)\n\s\s\n(\d+)\n(\d+\.\d+)/g;
             let innerMatch;
+
+            // 内部の正規表現でデータを抽出
             while ((innerMatch = innerRegex.exec(innerText)) !== null) {
-                const i = parseInt(innerMatch[1]-1, 10);
-                const j = parseInt(innerMatch[2]-1, 10);
-                const k = parseInt(innerMatch[3]-1, 10);
-                const X = parseFloat(innerMatch[4]);
-                let A = [i, j, k];
-                A.sort((a, b) => b - a);
-                TripleOdds[A[0]][A[1]][A[2]] = 75 / X;
-                console.log(A);
+                // i, j, k の順序は既に i < j < k と確定しているため、そのまま使用
+                const i = +innerMatch[1] - 1;
+                const j = +innerMatch[2] - 1;
+                const k = +innerMatch[3] - 1;
+                const X = 75 / +innerMatch[4]; // 必要な逆数計算を一度に実行
+
+                // i, j, k をキーとして連結
+                const key = `${i},${j},${k}`;
+                // X を Map に格納
+                tripleOddsMap.set(key, X);
             }
         } else {
             console.log("指定されたパターンが見つかりませんでした。");
@@ -497,8 +498,9 @@
 
     function analyze(){
         // alphaの計算
-        const cont = parseFloat(slider.value);
-        const alpha = (100 - N_uma * (N_uma - 1) * (N_uma - 2) * cont / 6 ) / BBBsum;
+        const meter = +slider.value;
+        const cont = meter/N_all;
+        const alpha = (100 - meter ) / BBBsum;
 
         // Delta_Re_Th, Th_sum, support, oppose の計算
         let Th_sum = new Array(N_uma).fill(0);
@@ -511,9 +513,14 @@
         for (let i = 0; i < N_uma; i++) {
             for (let j = 0; j < i; j++) {
                 for (let k = 0; k < j; k++) {
-                    let bbb = BoteFuku[i]*BoteFuku[j]*BoteFuku[k];
-                    let th = alpha * bbb + cont;
-                    let delta = TripleOdds[i][j][k] - th;
+                    // キーを同様に連結
+                    const key = `${k},${j},${i}`;
+                    // Map から対応する X を取得
+                    let re = tripleOddsMap.get(key);
+                    if (re===undefined){re = 0;}
+                    const bbb = BoteFuku[i]*BoteFuku[j]*BoteFuku[k];
+                    const th = alpha * bbb + cont;
+                    const delta = re - th;
                     DeltaTable[i][j]+=delta;
                     DeltaTable[i][k]+=delta;
                     DeltaTable[j][k]+=delta;
