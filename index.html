@@ -3,29 +3,535 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>日付選択</title>
+    <title>オッズ異常解析ツール</title>
+    <style>
+        .GridAB {
+            display: flex;
+            align-items: flex-start;
+        }
+        .grid-containerA {
+            position: relative;
+            display: grid;
+            width: 425px;                              /* 計算結果を直接指定 */
+            height: 475px;                             /* 計算結果を直接指定 */
+            grid-template-columns: 150px 40px 60px 100px 75px;  /* 5列 */
+            grid-template-rows: repeat(19, 25px);       /* 19行 */
+            gap: 0;                                    /* セル同士の隙間をなくす */
+            border-top: none;               /* グリッド全体の上に境界線 */
+            border-left: none;              /* グリッド全体の左に境界線 */
+            border-right: none;                   /* 右は境界線なし */
+            border-bottom: 1px solid black;                       /* 下は境界線なし */
+        }
+        .grid-containerB {
+            position: relative;
+            display: grid;
+            width: 1000px;                              /* 計算結果を直接指定 */
+            height: 600px;                             /* 計算結果を直接指定 */
+            grid-template-columns: repeat(20, 50px);  /* 20列 */
+            grid-template-rows: repeat(24, 25px);       /* 24行 */
+            gap: 0;                                    /* セル同士の隙間をなくす */
+            border-top: 1px solid black;               /* グリッド全体の上に境界線 */
+            border-left: 1px solid black;              /* グリッド全体の左に境界線 */
+            border-right: none;                        /* 右は境界線なし */
+            border-bottom: none;                       /* 下は境界線なし */
+        }
+        .grid-itemA {
+            border-top: 1px solid black;                          /* 上に境界線なし */
+            border-left: 1px solid black;                         /* 左に境界線なし */
+            border-right: none;             /* 右に境界線 */
+            border-bottom: none;            /* 下に境界線 */
+            text-align: center;                        /* テキストの中央揃え */
+            overflow: hidden;                          /* テキストがセルを超えないようにする */
+            white-space: nowrap;                       /* テキストを折り返さない */
+            box-sizing: border-box;                    /* ボーダーを含めたサイズ計算 */
+        }
+        .grid-itemB {
+            border-top: none;                          /* 上に境界線なし */
+            border-left: none;                         /* 左に境界線なし */
+            border-right: 1px solid black;             /* 右に境界線 */
+            border-bottom: 1px solid black;            /* 下に境界線 */
+            text-align: center;                        /* テキストの中央揃え */
+            overflow: hidden;                          /* テキストがセルを超えないようにする */
+            white-space: nowrap;                       /* テキストを折り返さない */
+            box-sizing: border-box;                    /* ボーダーを含めたサイズ計算 */
+        }
+        .highlight-column {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: calc(100% / 20); /* 各列の幅 */
+            z-index: -1; /* 背景に配置 */
+            display: none; /* デフォルトでは非表示 */
+        }
+        .highlight-row {
+            position: absolute;
+            width: 100%; /* 各行の幅 */
+            z-index: -1; /* 背景に配置 */
+            display: none; /* デフォルトでは非表示 */
+        }
+        .large-text {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .medium-text {
+            font-size: 1.5em;
+        }
+        #slider {
+            width: 600px;
+        }
+        .goldA {
+            background: linear-gradient(0deg, #b89851, #ffd700, #fff8dc, #c5a66f); /* 145degから90degに変更して縦長に対応 */
+            box-shadow: inset 0 0 25px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 223, 0, 0.6), 0 10px 25px rgba(0, 0, 0, 0.2); /* シャドウの範囲を広く */
+        }
+        .silverA {
+            background: linear-gradient(0deg, #a1a1a1, #d4d4d4, #f1f1f1, #8d8d8d);
+            box-shadow: inset 0 0 25px rgba(192, 192, 192, 0.8), 0 0 30px rgba(224, 224, 224, 0.6), 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        .bronzeA {
+            background: linear-gradient(0deg, #d98a52, #e0a577, #fae2d1, #e6a472);
+            box-shadow: inset 0 0 20px rgba(227, 155, 100, 0.6), 0 0 25px rgba(255, 195, 113, 0.8), 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+        .goldB {
+            background: linear-gradient(90deg, #b89851, #ffd700, #fff8dc, #c5a66f); /* 145degから90degに変更して縦長に対応 */
+            box-shadow: inset 0 0 25px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 223, 0, 0.6), 0 10px 25px rgba(0, 0, 0, 0.2); /* シャドウの範囲を広く */
+        }
+        .silverB {
+            background: linear-gradient(90deg, #a1a1a1, #d4d4d4, #f1f1f1, #8d8d8d);
+            box-shadow: inset 0 0 25px rgba(192, 192, 192, 0.8), 0 0 30px rgba(224, 224, 224, 0.6), 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        .bronzeB {
+            background: linear-gradient(90deg, #d98a52, #e0a577, #fae2d1, #e6a472);
+            box-shadow: inset 0 0 20px rgba(227, 155, 100, 0.6), 0 0 25px rgba(255, 195, 113, 0.8), 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+    </style>
 </head>
 <body>
-    <label for="date">日付:</label>
-    <input type="date" id="date">
+<div id="Title"></div>
+<div class="GridAB" id="GridAB"></div>
+<div>逆張り定数</div>
+<input type="range" id="slider" min="0" max="0.03" step="0.0001" value="0">
 
-    <script>
-        // 現在の日付を取得
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = ('0' + (today.getMonth() + 1)).slice(-2);
-        const day = ('0' + today.getDate()).slice(-2);
-        const formattedDate = year + '-' + month + '-' + day;
+<form>
+    <label for="inputA">上位人気一覧：</label><br>
+    <textarea id="inputA" name="inputA" rows="10" cols="50"></textarea><br><br>
+    
+    <label for="inputB">3連複：</label><br>
+    <textarea id="inputB" name="inputB" rows="10" cols="50"></textarea><br><br>
+</form>
 
-        // 日付の初期値を設定
-        const dateInput = document.getElementById('date');
-        dateInput.value = formattedDate;
-    </script>
+<script src="https://cdn.jsdelivr.net/npm/mathjs@latest/lib/browser/math.js"></script>
 
-    <button id="execute">実行</button>
+<script>
+    const slider = document.getElementById('slider');
+    const size = 18;
+    const colors = ['gray', 'red', 'black'];
+    let colorIndex = Array(18).fill(2); // 各列の色インデックスを管理（デフォルトは黒）
+    let GridA;
+    let GridB;
+    let BoteFuku=[];
+    let N_uma = 0;
+    let BBBsum = 0;
+    let TableA_Odds_and_Name=[];
+    let TripleOdds = Array.from({ length: size }, () =>
+        Array.from({ length: size }, () =>
+            Array(size).fill(0)
+        )
+    );
 
-    <script src="analyzer.js"></script>
+    function createGridA() {
+        const GridA = document.createElement('div');
+        GridA.classList.add('grid-containerA');
 
+        const rows = 19; // 行数
+        const cols = 5;  // 列数
+
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+                const cell = document.createElement('div');
+                cell.classList.add('grid-itemA');
+                cell.dataset.row=i;
+
+                // 1行目のヘッダーテキスト
+                if (i === 0) {
+                    if (j === 0) {
+                        cell.textContent = "名前";
+                    } else if (j === 1) {
+                        cell.textContent = "人気";
+                    } else if (j === 2) {
+                        cell.textContent = "単勝";
+                    } else if (j === 3) {
+                        cell.textContent = "複勝";
+                    } else if (j === 4) {
+                        cell.textContent = "複勝票";
+                    }
+                }
+                GridA.appendChild(cell);
+            }
+        }
+
+        //ハイライト用
+        for (let i=0; i<rows; i++){
+            let ri = rows-i-1
+            const highlightRow = document.createElement('div');
+            highlightRow.classList.add('highlight-row');
+            highlightRow.style.top = `calc(100% / ${rows} * ${i})`;
+            highlightRow.style.bottom = `calc(100% / ${rows} * ${ri})`;
+            GridA.appendChild(highlightRow);
+        }
+        return GridA;
+    }
+
+    function createGridB() {
+        const GridB = document.createElement('div');
+        GridB.classList.add('grid-containerB');
+
+        const rows = 24;
+        const cols = 20;
+        const NNN = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩', '⑪', '⑫', '⑬', '⑭', '⑮', '⑯', '⑰', '⑱'];
+
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+                const cell = document.createElement('div');
+                cell.classList.add('grid-itemB');
+                cell.dataset.col=j;
+
+                if (i === 0 && j === 0) {
+                    // B(1,1)に「馬番」
+                    cell.textContent = "馬番";
+                } else if (i === 0 && j >= 1 && j <= 18) {
+                    // B(1,2)~B(1,19)にNNN
+                    cell.textContent = NNN[j - 1];
+                } else if (i >= 1 && i <= 18 && j === 19) {
+                    // B(2,20)~B(19,20)にNNN
+                    cell.textContent = NNN[i - 1];
+                } else if (i >= 1 && i <= 18 && j === 0) {
+                    // B(2,1)~B(19,1)にNNN
+                    cell.textContent = NNN[i - 1];
+                } else if (i === 19 && j >= 1 && j <= 18) {
+                    // B(20,2)~B(20,20)にNNN
+                    cell.textContent = NNN[j - 1];
+                } else if (i === 20 && j === 0) {
+                    cell.textContent = "賛成";
+                } else if (i === 21 && j === 0) {
+                    cell.textContent = "反対";
+                } else if (i === 22 && j === 0) {
+                    cell.textContent = "合計";
+                } else if (i === 23 && j === 0) {
+                    cell.textContent = "割合";
+                }
+
+                GridB.appendChild(cell);
+            }
+        }
+        for (i=0; i<cols; i++){
+            const highlightColumn = document.createElement('div');
+            highlightColumn.classList.add('highlight-column');
+            highlightColumn.style.left = `calc(100% / ${cols} * ${i})`;
+            highlightColumn.style.width = `calc(100% / ${cols})`;
+            GridB.appendChild(highlightColumn);
+        }
+        return GridB;
+    }
+
+    window.onload = function() {
+        //グリッド生成
+        const GridAB = document.querySelector(".GridAB");
+        GridAB.appendChild(createGridA());
+        GridAB.appendChild(createGridB());
+        //二つの親要素取得。後程childrenメソッドで中身を操作する。
+        GridA = document.querySelector('.grid-containerA');
+        GridB = document.querySelector('.grid-containerB');
+        //各イベントリスナー設定
+        slider.addEventListener('input', analyze);
+        let timer;
+        document.getElementById('inputA').addEventListener('paste', () => {
+            clearTimeout(timer);
+            timer = setTimeout(processInputA, 1000);
+        });
+        document.getElementById('inputB').addEventListener('paste', () => {
+            clearTimeout(timer);
+            timer = setTimeout(processInputB, 1000);
+        });
+        GridB.addEventListener('click', (event) => {
+            if (event.target.classList.contains('grid-itemB')) {
+                const col = event.target.dataset.col;
+                colorIndex[col-1] = (colorIndex[col-1] + 1) % colors.length;
+                const cells = document.querySelectorAll(`.grid-itemB[data-col='${col}'],.grid-itemA[data-row='${col}']`);
+                cells.forEach(cell => {
+                    cell.style.color = colors[colorIndex[col-1]];
+                });
+            }
+        });
+    };
+
+    window.onbeforeunload = function(event) {
+        event.preventDefault();
+        event.returnValue = 'このページを離れようとしています。入力データは初期化されます';
+    };
+
+
+
+    // 入力: UとDの配列
+    function solveEquations(D, U) {
+        const N = D.length;
+
+        // 1. Dを二次元配列に拡張
+        let D_extended = D.map((di, i) => [di, i]);
+
+        // 2. DをソートしてCを作成
+        let C = D_extended.sort((a, b) => {
+        if (a[0] === b[0]) {
+            if (U[a[0]] === U[b[0]]) {
+            return a[1] - b[1]; // インデックス順でソート
+            } else {
+            return U[a[0]] - U[b[0]]; // Uの値でソート
+            }
+        } else {
+            return a[0] - b[0]; // Dの値でソート
+        }
+        });
+
+        // 3. Nに応じて線形連立方程式を設定し解く
+        let A = [];
+        let b = [];
+        if (N >= 8) {
+        let a = 3.75;
+        // 1つ目の方程式
+        A.push([(a * C[0][0] - 2), 1, 1, ...Array(N - 3).fill(0)]);
+        b.push(100);
+
+        // 2つ目の方程式
+        A.push([1, (a * C[1][0] - 2), 1, ...Array(N - 3).fill(0)]);
+        b.push(100);
+
+        // 3つ目以降の方程式
+        for (let i = 2; i < N; i++) {
+            let row = Array(N).fill(0);
+            row[0] = 1;
+            row[1] = 1;
+            row[i] = (a * C[i][0] - 2);
+            A.push(row);
+            b.push(100);
+        }
+        } else {
+        let a = 2.5;
+        // 1つ目の方程式
+        A.push([(a * C[0][0] - 1), 1, ...Array(N - 2).fill(0)]);
+        b.push(100);
+
+        // 2つ目以降の方程式
+        for (let i = 1; i < N; i++) {
+            let row = Array(N).fill(0);
+            row[0] = 1;
+            row[i] = (a * C[i][0] - 1);
+            A.push(row);
+            b.push(100);
+        }
+        }
+
+        // 連立方程式を解く
+        let X = math.lusolve(A, b);
+
+        // 4. Cに解を挿入
+        for (let i = 0; i < N; i++) {
+        C[i].push(X[i][0]);
+        }
+
+        // 5. C[i][1]が小さい順にソートした配列Bを作成
+        let B = C.sort((a, b) => a[1] - b[1]);
+
+        // 6. B[i][2]と、その総和を表示
+        let sum = 0;
+        B.forEach((row) => {
+        sum += row[2];
+        });
+
+        return B.map(row => row[2]);
+    }
+
+    function processInputA() {
+        const input = document.getElementById('inputA').value;
+        const regex_Title = /1R\n2R\n3R\n4R\n5R\n6R\n7R\n8R\n9R\n10R\n11R\n12R\n(\d+R)\n(.+)\n(.+)\n(.+)\n/g;
+        const regex_name_odds=/(\d+)\s\d\s(\d+)\s\n(\S+)\s(\d+.\d)\s(\d+.\d)\s-\s(\d+.\d)\n/g;
+        const regex_Cancel=/--\s\d\s(\d+)\s\s(\S+)\s(除外|取消)\n/g;
+
+        //tableA作成
+        let match_name_odds;
+        while ((match_name_odds = regex_name_odds.exec(input)) !== null) {
+            TableA_Odds_and_Name.push([match_name_odds[2], match_name_odds[3], match_name_odds[1], match_name_odds[4], match_name_odds[5], match_name_odds[6]]);
+        }
+
+        //除外&取消検索
+        let match_Cancel;
+        let TableA_Cancel=[];
+        while ((match_Cancel = regex_Cancel.exec(input)) !== null) {
+            TableA_Cancel.push([match_Cancel[1], match_Cancel[2], match_Cancel[3], Infinity, Infinity, Infinity]);
+        }
+
+        //tableAに結合
+        TableA_Cancel.forEach(item => TableA_Odds_and_Name.push(item));
+        TableA_Odds_and_Name.sort((a, b) => a[0] - b[0]);
+        console.log(TableA_Odds_and_Name);
+        N_uma=TableA_Odds_and_Name.length;
+
+        //タイトル記述
+        const match_Title = regex_Title.exec(input);
+        if (match_Title) {
+            const Title = `
+                <div class="large-text">【${match_Title[1]}】${match_Title[2]}</div>
+                <div class="medium-text">${match_Title[4]}</div>
+                <div class="medium-text">${match_Title[3]}</div>
+            `;
+            document.getElementById('Title').innerHTML = Title;
+        } else {
+            document.getElementById('Title').innerHTML = "正規表現に一致するテキストが見つかりませんでした。";
+        }
+
+        //複勝票導出
+        let D = TableA_Odds_and_Name.map(row => row[4]);
+        let U = TableA_Odds_and_Name.map(row => row[5]);
+        BoteFuku=solveEquations(D,U);
+        console.log("複勝票",BoteFuku);
+
+        //３項積総和
+        for (let i = 0; i < N_uma; i++) {
+            for (let j = 0; j < i; j++) {
+                for (let k = 0; k < j; k++) {
+                    BBBsum += BoteFuku[i] * BoteFuku[j] * BoteFuku[k];
+                }
+            }
+        }
+
+        for (let i = 0; i < N_uma; i++) {
+            //テーブルA書き込み
+            const rowStartIndex = i * 5 + 5;
+            let name=TableA_Odds_and_Name[i][1];
+            let ninki=TableA_Odds_and_Name[i][2];
+            let TanOdds = TableA_Odds_and_Name[i][3];
+
+            GridA.children[rowStartIndex].textContent = name;
+            GridA.children[rowStartIndex+1].textContent = ninki;
+            if (TanOdds==Infinity){
+                GridA.children[rowStartIndex+2].textContent = "---.-";
+                GridA.children[rowStartIndex+3].textContent = "---.-";
+            }else{
+                GridA.children[rowStartIndex+2].textContent = TanOdds;
+                GridA.children[rowStartIndex+3].textContent = `${TableA_Odds_and_Name[i][4]} - ${TableA_Odds_and_Name[i][5]}`;
+            }
+            GridA.children[rowStartIndex+4].textContent = BoteFuku[i].toFixed(1)+" %";
+
+            //上位人気をハイライトする
+            if(ninki==1){
+                GridA.children[96+i].classList.add("goldA");
+                GridA.children[96+i].style.display="block";                
+                GridB.children[481+i].classList.add("goldB");
+                GridB.children[481+i].style.display="block";
+            }
+            if(ninki==2){
+                GridA.children[96+i].classList.add("silverA");
+                GridA.children[96+i].style.display="block";                
+                GridB.children[481+i].classList.add("silverB");
+                GridB.children[481+i].style.display="block";
+            }
+            if(ninki==3){
+                GridA.children[96+i].classList.add("bronzeA");
+                GridA.children[96+i].style.display="block";
+                GridB.children[481+i].classList.add("bronzeB");
+                GridB.children[481+i].style.display="block";
+            }
+        }
+    }
+
+    function processInputB() {
+        const input = document.getElementById('inputB').value;
+        const regex = /オッズを見て個別に選択全選択全解除\n選択\n([\s\S]+?)\n選択済み/;
+        const match = input.match(regex);
+
+        //３連複を配列に格納
+        if (match) {
+            const innerText = match[1];
+            const innerRegex = /(\d+)\n\s\s\n(\d+)\n\s\s\n(\d+)\n(\d+\.\d+)/g;
+            let innerMatch;
+            while ((innerMatch = innerRegex.exec(innerText)) !== null) {
+                const i = parseInt(innerMatch[1]-1, 10);
+                const j = parseInt(innerMatch[2]-1, 10);
+                const k = parseInt(innerMatch[3]-1, 10);
+                const X = parseFloat(innerMatch[4]);
+                let A = [i, j, k];
+                A.sort((a, b) => b - a);
+                TripleOdds[A[0]][A[1]][A[2]] = 75 / X;
+                console.log(A);
+            }
+        } else {
+            console.log("指定されたパターンが見つかりませんでした。");
+        }
+        analyze();
+    }
+
+
+    function analyze(){
+        // alphaの計算
+        const cont = parseFloat(slider.value);
+        const alpha = (100 - N_uma * (N_uma - 1) * (N_uma - 2) * cont / 6 ) / BBBsum;
+
+        // Delta_Re_Th, Th_sum, support, oppose の計算
+        let Th_sum = new Array(N_uma).fill(0);
+        let support = new Array(N_uma).fill(0);
+        let oppose = new Array(N_uma).fill(0);
+        let Delta_er_Re_Th = new Array(N_uma).fill(0);
+        let Delta_Re_Th = new Array(N_uma).fill(0);
+        let DeltaTable = Array.from({ length: N_uma }, () => Array(N_uma).fill(0));
+
+        for (let i = 0; i < N_uma; i++) {
+            for (let j = 0; j < i; j++) {
+                for (let k = 0; k < j; k++) {
+                    let bbb = BoteFuku[i]*BoteFuku[j]*BoteFuku[k];
+                    let th = alpha * bbb + cont;
+                    let delta = TripleOdds[i][j][k] - th;
+                    DeltaTable[i][j]+=delta;
+                    DeltaTable[i][k]+=delta;
+                    DeltaTable[j][k]+=delta;
+                    DeltaTable[j][i]+=delta;
+                    DeltaTable[k][i]+=delta;
+                    DeltaTable[k][j]+=delta;
+
+                    for (let p of [i, j, k]) {
+                        if (delta > 0) {
+                            support[p] += delta;
+                        } else if (delta < 0) {
+                            oppose[p] += delta;
+                        }
+                        Th_sum[p] += th;
+                    }
+                }
+            }
+        }
+
+        for (let i=0; i<N_uma; i++){
+            Delta_Re_Th[i] = support[i] + oppose[i];
+            let x=Th_sum[i];
+            if (x==0){
+                Delta_er_Re_Th[i]=0;
+            }else{
+                Delta_er_Re_Th[i] = 100*Delta_Re_Th[i] / x;
+            }
+        }
+
+        for (let i = 0; i < N_uma; i++) {
+            for (let j = 0; j < N_uma; j++) {
+                if (i==j||TableA_Odds_and_Name[i][3]==Infinity||TableA_Odds_and_Name[j][3]==Infinity){}else{
+                    GridB.children[21+20*i+j].textContent =DeltaTable[i][j].toFixed(1);
+                }
+            }
+            if(TableA_Odds_and_Name[i][3]!==Infinity){
+                GridB.children[401+i].textContent = support[i].toFixed(1);
+                GridB.children[421+i].textContent = oppose[i].toFixed(1);
+                GridB.children[441+i].textContent = Delta_Re_Th[i].toFixed(1);
+                GridB.children[461+i].textContent = Delta_er_Re_Th[i].toFixed(1);
+            }
+        }
+    }
+</script>
 
 </body>
 </html>
