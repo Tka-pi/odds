@@ -109,7 +109,7 @@
 <div id="Title"></div>
 <div class="GridAB" id="GridAB"></div>
 <div>逆張り定数</div>
-<input type="range" id="slider" min="0" max="0.03" step="0.0001" value="0">
+<input type="range" id="slider" min="0" max="0.03" step="0.00025" value="0">
 
 <form>
     <label for="inputA">上位人気一覧：</label><br>
@@ -244,11 +244,11 @@
         //各イベントリスナー設定
         slider.addEventListener('input', analyze);
         let timer;
-        document.getElementById('inputA').addEventListener('paste', () => {
+        document.getElementById('inputA').addEventListener('input', () => {
             clearTimeout(timer);
             timer = setTimeout(processInputA, 3000);
         });
-        document.getElementById('inputB').addEventListener('paste', () => {
+        document.getElementById('inputB').addEventListener('input', () => {
             clearTimeout(timer);
             timer = setTimeout(processInputB, 3000);
         });
