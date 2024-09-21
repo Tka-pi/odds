@@ -246,11 +246,11 @@
         let timer;
         document.getElementById('inputA').addEventListener('paste', () => {
             clearTimeout(timer);
-            timer = setTimeout(processInputA, 1000);
+            timer = setTimeout(processInputA, 3000);
         });
         document.getElementById('inputB').addEventListener('paste', () => {
             clearTimeout(timer);
-            timer = setTimeout(processInputB, 1000);
+            timer = setTimeout(processInputB, 3000);
         });
         GridB.addEventListener('click', (event) => {
             if (event.target.classList.contains('grid-itemB')) {
