@@ -233,11 +233,16 @@
         return GridB;
     }
 
+    ()=>{
+
+    }
+
     window.onload = function() {
         //グリッド生成
         const GridAB = document.querySelector(".GridAB");
         GridAB.appendChild(createGridA());
         GridAB.appendChild(createGridB());
+        netkeibaURL();
         //二つの親要素取得。後程childrenメソッドで中身を操作する。
         GridA = document.querySelector('.grid-containerA');
         GridB = document.querySelector('.grid-containerB');
@@ -268,6 +273,27 @@
         event.preventDefault();
         event.returnValue = 'このページを離れようとしています。入力データは初期化されます';
     };
+
+    function netkeibaURL(){
+        // 現在の年月日を取得
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = ('0' + (today.getMonth() + 1)).slice(-2); // 月は0から始まるので+1
+        const day = ('0' + today.getDate()).slice(-2);
+
+        // yyyymmddの形に整形
+        const kyou = `${year}${month}${day}`;
+
+        // URLを作成
+        const url = `https://race.netkeiba.com/top/?kaisai_date=${kyou}`;
+
+        // HTMLの一番最後にURLを表示
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = "_blank"; // 新しいタブで開くように設定
+        a.textContent = url;
+        document.body.appendChild(a);
+    }
 
 
 
