@@ -25,9 +25,9 @@
         .grid-containerB {
             position: relative;
             display: grid;
-            width: 1000px;                              /* 計算結果を直接指定 */
+            width: 1025px;                              /* 計算結果を直接指定 */
             height: 600px;                             /* 計算結果を直接指定 */
-            grid-template-columns: repeat(20, 50px);  /* 20列 */
+            grid-template-columns: 75px repeat(19, 50px);  /* 20列 */
             grid-template-rows: repeat(24, 25px);       /* 24行 */
             gap: 0;                                    /* セル同士の隙間をなくす */
             border-top: 1px solid black;               /* グリッド全体の上に境界線 */
@@ -220,9 +220,9 @@
                 } else if (i === 21 && j === 0) {
                     cell.textContent = "反対";
                 } else if (i === 22 && j === 0) {
-                    cell.textContent = "合計";
+                    cell.textContent = "信頼度";
                 } else if (i === 23 && j === 0) {
-                    cell.textContent = "割合";
+                    cell.textContent = "異常度";
                 }
 
                 GridB.appendChild(cell);
@@ -564,7 +564,7 @@
             if (x==0){
                 Delta_er_Re_Th[i]=0;
             }else{
-                Delta_er_Re_Th[i] = 100*Delta_Re_Th[i] / x;
+                Delta_er_Re_Th[i] = 100*support[i] / x;
             }
         }
 
@@ -577,8 +577,8 @@
             if(TableA_Odds_and_Name[i][3]!==Infinity){
                 GridB.children[401+i].textContent = support[i].toFixed(1);
                 GridB.children[421+i].textContent = oppose[i].toFixed(1);
-                GridB.children[441+i].textContent = Delta_Re_Th[i].toFixed(1);
-                GridB.children[461+i].textContent = Delta_er_Re_Th[i].toFixed(1);
+                GridB.children[441+i].textContent = 100*support[i]/(support[i]-oppose[i]).toFixed(0)+"%";
+                GridB.children[461+i].textContent = Delta_er_Re_Th[i].toFixed(0)+"%";
             }
         }
     }
