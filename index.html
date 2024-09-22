@@ -132,6 +132,7 @@
     let GridB;
     let BoteFuku=[];
     let N_uma = 0;
+    let N_cancel = 0;
     let N_all = 0;
     let BBBsum = 0;
     let TableA_Odds_and_Name=[];
@@ -393,9 +394,10 @@
         //tableAに結合
         TableA_Cancel.forEach(item => TableA_Odds_and_Name.push(item));
         TableA_Odds_and_Name.sort((a, b) => a[0] - b[0]);
-        console.log(TableA_Odds_and_Name);
         N_uma=TableA_Odds_and_Name.length;
-        N_all = N_uma * (N_uma - 1) * (N_uma - 2) / 6;
+        N_cancel=TableA_Cancel.length;
+        let N_run=N_uma-N_cancel;
+        N_all = N_run * (N_run - 1) * (N_run - 2) / 6;
 
         //タイトル記述
         const match_Title = regex_Title.exec(input);
@@ -414,7 +416,6 @@
         let D = TableA_Odds_and_Name.map(row => row[4]);
         let U = TableA_Odds_and_Name.map(row => row[5]);
         BoteFuku=solveEquations(D,U);
-        console.log("複勝票",BoteFuku);
 
         //３項積総和
         for (let i = 0; i < N_uma; i++) {
@@ -512,6 +513,9 @@
         let Delta_Re_Th = new Array(N_uma).fill(0);
         let DeltaTable = Array.from({ length: N_uma }, () => Array(N_uma).fill(0));
 
+        let re_sum=0;
+        let th_sum=0;
+
         for (let i = 0; i < N_uma; i++) {
             for (let j = 0; j < i; j++) {
                 for (let k = 0; k < j; k++) {
@@ -520,9 +524,13 @@
                     // Map から対応する X を取得
                     let re = tripleOddsMap.get(key);
                     if (re===undefined){re = 0;}
+                    re_sum+=re;
+
                     const bbb = BoteFuku[i]*BoteFuku[j]*BoteFuku[k];
                     const th = alpha * bbb + cont;
                     const delta = re - th;
+                    th_sum+=th;
+
                     DeltaTable[i][j]+=delta;
                     DeltaTable[i][k]+=delta;
                     DeltaTable[j][k]+=delta;
@@ -536,14 +544,14 @@
                         } else if (delta < 0) {
                             oppose[p] += delta;
                         }
+                        Delta_Re_Th[p]+=delta;
                         Th_sum[p] += th;
                     }
                 }
             }
         }
 
-        for (let i=0; i<N_uma; i++){
-            Delta_Re_Th[i] = support[i] + oppose[i];
+        for (let i=0; i<N_uma; i++){     
             let x=Th_sum[i];
             if (x==0){
                 Delta_er_Re_Th[i]=0;
@@ -551,6 +559,10 @@
                 Delta_er_Re_Th[i] = 100*Delta_Re_Th[i] / x;
             }
         }
+
+
+
+        console.log("resum",re_sum,"thsum",th_sum,"差の和",Delta_Re_Th.reduce((acc, val) => acc + val, 0));
 
         for (let i = 0; i < N_uma; i++) {
             for (let j = 0; j < N_uma; j++) {
