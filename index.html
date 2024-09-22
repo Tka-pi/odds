@@ -105,6 +105,9 @@
             background: linear-gradient(90deg, #d98a52, #e0a577, #fae2d1, #e6a472);
             box-shadow: inset 0 0 20px rgba(227, 155, 100, 0.6), 0 0 25px rgba(255, 195, 113, 0.8), 0 8px 20px rgba(0, 0, 0, 0.2);
         }
+        #inputB {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -373,7 +376,10 @@
     }
 
     function processInputA() {
-        const input = document.getElementById('inputA').value;
+        let inputA=document.getElementById('inputA');
+        let inputB=document.getElementById('inputB');
+        const input = inputA.value;
+        inputA.style.display="none";
         const regex_Title = /1R\n2R\n3R\n4R\n5R\n6R\n7R\n8R\n9R\n10R\n11R\n12R\n(\d+R)\n(.+)\n(.+)\n(.+)\n/g;
         const regex_name_odds=/(\d+)\s\d\s(\d+)\s\n(\S+)\s(\d+.\d)\s(\d+.\d)\s-\s(\d+.\d)\n/g;
         const regex_Cancel=/--\s\d\s(\d+)\s\s(\S+)\s(除外|取消)\n/g;
@@ -464,11 +470,15 @@
                 GridB.children[481+i].style.display="block";
             }
         }
+
+        inputB.style.display="block";
     }
 
     function processInputB() {
         // 入力テキストの取得
-        const input = document.getElementById('inputB').value;
+        let inputB= document.getElementById('inputB')
+        const input = inputB.value;
+        inputB.style.display="none";
 
         // メインの正規表現マッチング
         const match = input.match(/オッズを見て個別に選択全選択全解除\n選択\n([\s\S]+?)\n選択済み/);
@@ -522,13 +532,14 @@
                     // キーを同様に連結
                     const key = `${k},${j},${i}`;
                     // Map から対応する X を取得
-                    let re = tripleOddsMap.get(key);
-                    if (re===undefined){re = 0;}
-                    re_sum+=re;
-
+                    let re = tripleOddsMap.get(key);                    
                     const bbb = BoteFuku[i]*BoteFuku[j]*BoteFuku[k];
-                    const th = alpha * bbb + cont;
+                    let th = alpha * bbb + cont;
+
+                    if (re===undefined){re = 0; th=0;}
                     const delta = re - th;
+
+                    re_sum+=re;
                     th_sum+=th;
 
                     DeltaTable[i][j]+=delta;
