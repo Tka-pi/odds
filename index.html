@@ -139,6 +139,7 @@
     let N_all = 0;
     let BBBsum = 0;
     let TableA_Odds_and_Name=[];
+    let re_sum=0;
     // Mapを使用してデータを格納
     const tripleOddsMap = new Map();
 
@@ -496,6 +497,7 @@
                 const j = +innerMatch[2] - 1;
                 const k = +innerMatch[3] - 1;
                 const X = 75 / +innerMatch[4]; // 必要な逆数計算を一度に実行
+                re_sum += X;
 
                 // i, j, k をキーとして連結
                 const key = `${i},${j},${k}`;
@@ -505,6 +507,7 @@
         } else {
             console.log("指定されたパターンが見つかりませんでした。");
         }
+        console.log("リアル合計",re_sum);
         analyze();
     }
 
@@ -513,7 +516,7 @@
         // alphaの計算
         const meter = +slider.value;
         const cont = meter/N_all;
-        const alpha = (100 - meter ) / BBBsum;
+        const alpha = (re_sum - meter ) / BBBsum;
 
         // Delta_Re_Th, Th_sum, support, oppose の計算
         let Th_sum = new Array(N_uma).fill(0);
@@ -522,9 +525,6 @@
         let Delta_er_Re_Th = new Array(N_uma).fill(0);
         let Delta_Re_Th = new Array(N_uma).fill(0);
         let DeltaTable = Array.from({ length: N_uma }, () => Array(N_uma).fill(0));
-
-        let re_sum=0;
-        let th_sum=0;
 
         for (let i = 0; i < N_uma; i++) {
             for (let j = 0; j < i; j++) {
@@ -538,9 +538,6 @@
 
                     if (re===undefined){re = 0; th=0;}
                     const delta = re - th;
-
-                    re_sum+=re;
-                    th_sum+=th;
 
                     DeltaTable[i][j]+=delta;
                     DeltaTable[i][k]+=delta;
@@ -570,10 +567,6 @@
                 Delta_er_Re_Th[i] = 100*Delta_Re_Th[i] / x;
             }
         }
-
-
-
-        console.log("resum",re_sum,"thsum",th_sum,"差の和",Delta_Re_Th.reduce((acc, val) => acc + val, 0));
 
         for (let i = 0; i < N_uma; i++) {
             for (let j = 0; j < N_uma; j++) {
