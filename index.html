@@ -499,7 +499,6 @@
         let ana_1st = new Array(N_uma).fill(0);
         let ana_2nd = new Array(N_uma).fill(0);
         let ana_3rd = new Array(N_uma).fill(0);
-        let sanren_fuku_sum_for_i= new Array(N_uma).fill(0);
 
         // 入力テキストの取得
         let inputB= document.getElementById('inputB')
@@ -544,21 +543,21 @@
                 const re_1st=sanren_fuku.get(`${c_1st[0]},${c_1st[1]},${c_1st[2]}`);
                 const re_2nd=sanren_fuku.get(`${c_2nd[0]},${c_2nd[1]},${c_2nd[2]}`);
                 const re_3rd=sanren_fuku.get(`${c_3rd[0]},${c_3rd[1]},${c_3rd[2]}`);
-                const sumj=sanren_fuku_sum_for_i[j];
-                if(re_1st!==undefined&&sumj!==0){
-                    ana_1st[i]+=re_1st/sumj;
+                const factor=sanren_fuku_sum_for_i[j]*BoteFuku[i];
+                if(re_1st!==undefined&&factor!==0){
+                    ana_1st[i]+=re_1st/factor;
                 }
                 if(re_2nd!==undefined){
-                    ana_2nd[i]+=re_2nd/sumj;
+                    ana_2nd[i]+=re_2nd/factor;
                 }
                 if(re_3rd!==undefined){
-                    ana_3rd[i]+=re_3rd/sumj;
+                    ana_3rd[i]+=re_3rd/factor;
                 }
             }
             //記入
-            grid_container.children[10*(i+1)+7].textContent = (100*ana_1st[i]).toFixed(0);
-            grid_container.children[10*(i+1)+8].textContent = (100*ana_2nd[i]).toFixed(0);
-            grid_container.children[10*(i+1)+9].textContent = (100*ana_3rd[i]).toFixed(0);
+            grid_container.children[10*(i+1)+7].textContent = (ana_1st[i]).toFixed(1);
+            grid_container.children[10*(i+1)+8].textContent = (ana_2nd[i]).toFixed(1);
+            grid_container.children[10*(i+1)+9].textContent = (ana_3rd[i]).toFixed(1);
         }
 
 
@@ -589,7 +588,7 @@
                 for (let k = 0; k < j; k++) {
                     const re = sanren_fuku.get(`${k},${j},${i}`);
                     
-                    if (re!==undefined && checkStyle(i)==false && checkStyle(j)==false && checkStyle(k)==false){
+                    if (re!==undefined){
                         const bbb = BoteFuku[i]*BoteFuku[j]*BoteFuku[k];
                         const th = alpha * bbb + cont;
                         const delta = re - th;
@@ -614,10 +613,10 @@
             const sup=100*support[i];
             const opp=100*oppose[i];
             const rel=100*sup/(sup-opp);
-            if(TableA_Odds_and_Name[i][3]!==Infinity&&checkStyle(i)==false){
+            if(TableA_Odds_and_Name[i][3]!==Infinity){
                 grid_container.children[i_start+2].textContent = sup.toFixed(1);
                 grid_container.children[i_start+3].textContent = rel.toFixed(1);
-                grid_container.children[i_start+4].textContent = (sup/ths[i]).toFixed(1);
+                grid_container.children[i_start+4].textContent = (sup/reals[i]).toFixed(1);
             }
         }
     }
@@ -629,9 +628,9 @@
         
         // 要素が存在し、スタイルが"color: lightgray;"であるかを確認
         if (element && element.style.color === "lightgray") {
-            return true;
+            return 0;
         }
-        return false;
+        return 1;
     }
 
 
