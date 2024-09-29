@@ -9,7 +9,7 @@
             display: grid;
             width: max-content;
             height: max-content;
-            grid-template-columns: 40px 40px 50px repeat(4, 50px) ;
+            grid-template-columns: 40px 40px 50px repeat(7, 50px) ;
             grid-template-rows: repeat(20, 25px);
             gap: 0;
             border-top: none;
@@ -81,11 +81,14 @@
     <div class="grid_container">
         <div class="grid-item">馬番</div>
         <div class="grid-item">人気</div>
-        <div class="grid-item">賛成</div>
-        <div class="grid-item">信頼%</div>
+        <div class="grid-item">軸値</div>
+        <div class="grid-item">信頼</div>
         <div class="grid-item">逆張</div>
         <div class="grid-item">単勝</div>
         <div class="grid-item">複勝%</div>
+        <div class="grid-item">1st</div>
+        <div class="grid-item">2nd</div>
+        <div class="grid-item">3rd</div>
     </div>
 </div>
 
@@ -116,6 +119,9 @@
     // Mapを使用してデータを格納
     const sanren_fuku = new Map();
     let sanren_fuku_sum_for_i = Array(18).fill(0);
+    let umaban_1st;
+    let umaban_2nd;
+    let umaban_3rd;
 
 
 
@@ -144,9 +150,118 @@
                 cells.forEach(cell => {
                     cell.style.color = colors[colorIndex[row]];
                 });
+                analyze();
             }
         });
+
+
+
+
+
+/*
+
+          // grid_container内の子要素を取得
+  const gridContainer = document.querySelector('.grid_container');
+  const rows = 20;
+  const cols = 7;
+  let ascending = Array(cols).fill(true); // 各列の昇順/降順フラグを管理
+
+  // 1行目のイベントリスナーを設定
+  for (let i = 0; i < cols; i++) {
+    const headerCell = gridContainer.children[i];
+    headerCell.addEventListener('click', function() {
+      sortTableByColumn(i);
+    });
+  }
+
+  function sortTableByColumn(colIndex) {
+    // 2行目から19行目のテキストとクラス情報を取得
+    const ch_text = [];
+    const ch_class = [];
+
+    for (let row = 1; row < rows - 1; row++) {
+      const textRow = [];
+      const classRow = [];
+      for (let col = 0; col < cols; col++) {
+        const index = row * cols + col;
+        textRow.push(gridContainer.children[index].textContent);
+        classRow.push(gridContainer.children[index].className);
+      }
+      ch_text.push(textRow);
+      ch_class.push(classRow);
+    }
+
+    // 列iを基にソート
+    ch_text.sort((a, b) => compareValues(a[colIndex], b[colIndex], colIndex));
+    ch_class.sort((a, b) => compareValues(a[colIndex], b[colIndex], colIndex));
+
+    if (!ascending[colIndex]) {
+      ch_text.reverse();
+      ch_class.reverse();
+    }
+
+    // 昇順・降順を切り替える
+    ascending[colIndex] = !ascending[colIndex];
+
+    // grid_containerの内容をソート後のものに置き換える
+    for (let row = 1; row < rows - 1; row++) {
+      for (let col = 0; col < cols; col++) {
+        const index = row * cols + col;
+        gridContainer.children[index].textContent = ch_text[row - 1][col];
+        gridContainer.children[index].className = ch_class[row - 1][col];
+      }
+    }
+  }
+
+  function compareValues(a, b, colIndex) {
+    // 1列目は特別なソートルール (囲み文字の比較)
+    if (colIndex === 0) {
+      const order = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩", "⑪", "⑫", "⑬", "⑭", "⑮", "⑯", "⑰", "⑱"];
+      return order.indexOf(a) - order.indexOf(b);
+    }
+
+    // 数値ベースのソート、それ以外のものは下に
+    const numA = parseFloat(a);
+    const numB = parseFloat(b);
+    if (isNaN(numA) && isNaN(numB)) return 0;
+    if (isNaN(numA)) return 1;
+    if (isNaN(numB)) return -1;
+    return numA - numB;
+  }
+
+
+
+
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     };
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -162,7 +277,7 @@
     function make_grid() {
         let gc = document.querySelector(".grid_container");
         const rows = 19;
-        const cols = 7;
+        const cols = 10;
 
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < cols; j++) {
@@ -340,7 +455,7 @@
 
         //単勝オッズ等書き込み
         for (let i = 0; i < N_uma; i++) {
-            const rowStartIndex = (i+1)*7;
+            const rowStartIndex = (i+1)*10;
             let ninki=TableA_Odds_and_Name[i][2];
             let TanOdds = TableA_Odds_and_Name[i][3];
 
@@ -353,22 +468,25 @@
 
             //ハイライト処理
             if(ninki==1){
+                umaban_1st=i;
                 grid_container.children[rowStartIndex].classList.add("gold");
                 grid_container.children[rowStartIndex+1].classList.add("gold");
                 grid_container.children[rowStartIndex+5].classList.add("gold");
             }
             if(ninki==2){
+                umaban_2nd=i;
                 grid_container.children[rowStartIndex].classList.add("silver");
                 grid_container.children[rowStartIndex+1].classList.add("silver");
                 grid_container.children[rowStartIndex+5].classList.add("silver");
             }
             if(ninki==3){
+                umaban_3rd=i;
                 grid_container.children[rowStartIndex].classList.add("bronze");
                 grid_container.children[rowStartIndex+1].classList.add("bronze");
                 grid_container.children[rowStartIndex+5].classList.add("bronze");
             }
         }
-        grid_container.children[7*19+6].textContent = (BoteFuku.reduce((acc, val) => acc + val, 0)*100).toFixed(1);
+        grid_container.children[10*19+6].textContent = (BoteFuku.reduce((acc, val) => acc + val, 0)*100).toFixed(1);
 
 
 
@@ -378,6 +496,11 @@
     }
 
     function processInputB() {
+        let ana_1st = new Array(N_uma).fill(0);
+        let ana_2nd = new Array(N_uma).fill(0);
+        let ana_3rd = new Array(N_uma).fill(0);
+        let sanren_fuku_sum_for_i= new Array(N_uma).fill(0);
+
         // 入力テキストの取得
         let inputB= document.getElementById('inputB')
         const input = inputB.value;
@@ -401,15 +524,45 @@
                 const X = 7500 / +innerMatch[4] / 10000; // 必要な逆数計算を一度に実行
 
                 sanren_fuku_sum += X;
-
-                // i, j, k をキーとして連結
-                const key = `${i},${j},${k}`;
-                // X を Map に格納
-                sanren_fuku.set(key, X);
+                sanren_fuku_sum_for_i[i]+=X;
+                sanren_fuku_sum_for_i[j]+=X;
+                sanren_fuku_sum_for_i[k]+=X;
+                sanren_fuku.set(`${i},${j},${k}`, X);
             }
         } else {
             console.log("指定されたパターンが見つかりませんでした。");
         }
+
+        for (let i = 0; i < N_uma; i++) {
+            for (let j = 0; j < N_uma; j++) {
+                let c_1st = [i,j,umaban_1st];
+                let c_2nd = [i,j,umaban_2nd];
+                let c_3rd = [i,j,umaban_3rd];
+                c_1st.sort((a, b) => a - b);
+                c_2nd.sort((a, b) => a - b);
+                c_3rd.sort((a, b) => a - b);
+                const re_1st=sanren_fuku.get(`${c_1st[0]},${c_1st[1]},${c_1st[2]}`);
+                const re_2nd=sanren_fuku.get(`${c_2nd[0]},${c_2nd[1]},${c_2nd[2]}`);
+                const re_3rd=sanren_fuku.get(`${c_3rd[0]},${c_3rd[1]},${c_3rd[2]}`);
+                const sumj=sanren_fuku_sum_for_i[j];
+                if(re_1st!==undefined&&sumj!==0){
+                    ana_1st[i]+=re_1st/sumj;
+                }
+                if(re_2nd!==undefined){
+                    ana_2nd[i]+=re_2nd/sumj;
+                }
+                if(re_3rd!==undefined){
+                    ana_3rd[i]+=re_3rd/sumj;
+                }
+            }
+            //記入
+            grid_container.children[10*(i+1)+7].textContent = (100*ana_1st[i]).toFixed(0);
+            grid_container.children[10*(i+1)+8].textContent = (100*ana_2nd[i]).toFixed(0);
+            grid_container.children[10*(i+1)+9].textContent = (100*ana_3rd[i]).toFixed(0);
+        }
+
+
+
 
         analyze();
 
@@ -417,6 +570,8 @@
     }
 
     function analyze(){
+        
+        const grid = document.querySelector(".grid_container");
         // alphaの計算
         const meter = +slider.value;
         const cont = meter/N_all;
@@ -426,48 +581,58 @@
         let support = new Array(N_uma).fill(0);
         let oppose = new Array(N_uma).fill(0);
         let reals = new Array(N_uma).fill(0);
-        let denger = new Array(N_uma).fill(0);
+        let ths = new Array(N_uma).fill(0);
+
 
         for (let i = 0; i < N_uma; i++) {
             for (let j = 0; j < i; j++) {
                 for (let k = 0; k < j; k++) {
-                    // キー連結
-                    const key = `${k},${j},${i}`;
-                    // Map からX を取得
-                    let re = sanren_fuku.get(key);                 
-                    const bbb = BoteFuku[i]*BoteFuku[j]*BoteFuku[k];
-                    let th = alpha * bbb + cont;
+                    const re = sanren_fuku.get(`${k},${j},${i}`);
                     
-                    if (re==undefined){re = 0; th=0;}
-                    const delta = re - th;
+                    if (re!==undefined && checkStyle(i)==false && checkStyle(j)==false && checkStyle(k)==false){
+                        const bbb = BoteFuku[i]*BoteFuku[j]*BoteFuku[k];
+                        const th = alpha * bbb + cont;
+                        const delta = re - th;
 
-                    for (let p of [i,j,k]) {     
-                        reals[p]+=re;
-                        if (delta > 0) {
-                            support[p] += delta;
-                        } else if (delta < 0) {
-                            oppose[p] += delta;
+                        for (let p of [i,j,k]) {
+                            reals[p]+=re;
+                            ths[p]+=th;
+                            if (delta > 0) {
+                                support[p] += delta;
+                            } else if (delta < 0) {
+                                oppose[p] += delta;
+                            }
                         }
                     }
-                }
+                }               
             }
         }
 
         //記入処理
         for (let i = 0; i < N_uma; i++) {
-            const i_start=7*(i+1);
+            const i_start=10*(i+1);
             const sup=100*support[i];
             const opp=100*oppose[i];
             const rel=100*sup/(sup-opp);
-            if(TableA_Odds_and_Name[i][3]!==Infinity){
+            if(TableA_Odds_and_Name[i][3]!==Infinity&&checkStyle(i)==false){
                 grid_container.children[i_start+2].textContent = sup.toFixed(1);
                 grid_container.children[i_start+3].textContent = rel.toFixed(1);
-                grid_container.children[i_start+4].textContent = (sup/reals[i]).toFixed(1);
+                grid_container.children[i_start+4].textContent = (sup/ths[i]).toFixed(1);
             }
         }
     }
 
 
+    function checkStyle(i) {
+        // 10*(i+1)番目の子要素を取得
+        const element = document.querySelector(`.grid_container :nth-child(${10*i+8})`);
+        
+        // 要素が存在し、スタイルが"color: lightgray;"であるかを確認
+        if (element && element.style.color === "lightgray") {
+            return true;
+        }
+        return false;
+    }
 
 
 
