@@ -9,7 +9,7 @@
             display: grid;
             width: max-content;
             height: max-content;
-            grid-template-columns: 40px 40px repeat(4, 55px) ;
+            grid-template-columns: 40px 40px repeat(2, 55px) ;
             grid-template-rows: repeat(19, 25px);
             gap: 0;
             border-top: none;
@@ -52,15 +52,6 @@
         #inputB {
             display: none;
         }
-        #inputC {
-            display: none;
-        }
-        #slider {
-            width: 450px;
-        }
-        #cont{
-            display: none;
-        }
     </style>
 </head>
 <body>
@@ -82,16 +73,8 @@
         <div class="grid-item">馬番</div>
         <div class="grid-item">人気</div>
         <div class="grid-item">単勝o.</div>
-        <div class="grid-item" style="color: red;">◎</div>
-        <div class="grid-item" style="color: blue;">○</div>
-        <div class="grid-item" style="color: green;">△</div>
+        <div class="grid-item">偏差和</div>
     </div>
-</div>
-
-<div id="cont">
-    <br>
-    レンジ
-    <input type="range" id="slider" min="0" max="100" step="1" value="0">
 </div>
 
 <div id="url" style="margin-bottom: 100px;">
@@ -102,8 +85,8 @@
 
 <script>
     //グローバル変数をなくす？
-    const colors = ['red', 'lightgray', 'black'];
-    let colorIndex = Array(18).fill(2);
+    const colors = ['red', 'blue', 'lightgray', 'black'];
+    let colorIndex = Array(18).fill(3);
     let Re_fuku=[];
     let Re_tan=[];
     let N_uma = 0;
@@ -122,7 +105,6 @@
         make_grid();
         netkeibaURL();
         //各イベントリスナー設定
-        document.getElementById('slider').addEventListener('input', analyze);
         let timer;
         document.getElementById('inputA').addEventListener('input', () => {
             clearTimeout(timer);
@@ -141,104 +123,7 @@
                     cell.style.color = colors[colorIndex[row]];
                 });
             }
-            analyze();
         });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-
-
-
-
-        const gridContainer = document.querySelector('.grid_container');
-    const headers = Array.from(gridContainer.children).slice(0, 11); // 1行目の要素
-    let sortOrder = Array(11).fill(true); // 各列ごとに昇順/降順のフラグ
-
-    // 丸囲み文字の順序を定義（①~⑱）
-    const circleNumberOrder = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩', '⑪', '⑫', '⑬', '⑭', '⑮', '⑯', '⑰', '⑱'];
-
-    headers.forEach((header, i) => {
-        header.addEventListener('click', function() {
-            // 親要素.grid_containerを取得
-            const gridContainer = document.querySelector('.grid_container');
-            
-            // 12~209番目の子要素を取得して削除し、配列grid_domに格納
-            let gridDom = [];
-            const children = Array.from(gridContainer.children).slice(11, 209);
-            gridDom = children.slice(); // すべてpush
-            children.forEach(child => child.remove()); // すべて削除
-
-            // 18x11の2次元配列に変換
-            let grid2D = [];
-            while (gridDom.length) {
-                grid2D.push(gridDom.splice(0, 11));
-            }
-
-            // ソート
-            grid2D.sort((a, b) => {
-                const aValue = a[i].textContent.trim();
-                const bValue = b[i].textContent.trim();
-                
-                if (i === 0) { // 1列目の特殊ソート
-                    const aIndex = circleNumberOrder.indexOf(aValue);
-                    const bIndex = circleNumberOrder.indexOf(bValue);
-                    return sortOrder[i] ? aIndex - bIndex : bIndex - aIndex;
-                } else { // 数値のソート
-                    const aNum = aValue === '' ? Infinity : parseFloat(aValue);
-                    const bNum = bValue === '' ? Infinity : parseFloat(bValue);
-                    return sortOrder[i] ? aNum - bNum : bNum - aNum;
-                }
-            });
-
-            // 昇順/降順の切り替え
-            sortOrder[i] = !sortOrder[i];
-
-            // 1次元配列に直す
-            const sortedGridDom = grid2D.flat();
-
-            // grid_containerに要素を追加
-            sortedGridDom.forEach(cell => gridContainer.appendChild(cell));
-        });
-    });
-
-
-*/
-
-
-
-
-
-
-
 
 
 
@@ -277,7 +162,7 @@
     function make_grid() {
         let gc = document.querySelector(".grid_container");
         const rows = 18;
-        const cols = 6;
+        const cols = 4;
 
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < cols; j++) {
@@ -289,7 +174,7 @@
                 if(j==0){
                     cell.textContent=uma_ban[i]
                 }
-                if([3,5].includes(j)){
+                if([3].includes(j)){
                     cell.style.backgroundColor="#dcdcdc";
                 }
                 gc.appendChild(cell);
@@ -458,7 +343,7 @@
 
         //単勝オッズ等書き込み
         for (let i = 0; i < N_uma; i++) {
-            const rowStartIndex = (i+1)*6;
+            const rowStartIndex = (i+1)*4;
             let ninki=TableA_Odds_and_Name[i][2];
             let TanOdds = TableA_Odds_and_Name[i][3];
             
@@ -518,13 +403,9 @@
 
         inputB.style.display="none";
         analyze();
-
-        document.getElementById('cont').style.display="block";
     }
 
     function analyze(){
-        let r=document.getElementById("slider").value;
-
         function th(i,j,k){
             return Re_tan[i]*Re_fuku[k]/(1-Re_fuku[i]-Re_fuku[j])*
             (Re_fuku[j]/(1-Re_fuku[i])+Re_tan[j]/(1-Re_tan[i]))/2
@@ -533,6 +414,7 @@
         //[馬番][0=三連複,n=n着]
         let support= Array.from({ length: N_uma }, () => Array(4).fill(0));
         let oppose= Array.from({ length: N_uma }, () => Array(4).fill(0));
+        let No1=0;
 
         for (let i = 0; i < N_uma; i++) {
             for (let j = 0; j < N_uma; j++) {
@@ -545,21 +427,24 @@
                         let delta_tan = re_tan-th_tan;
 
                         if(delta_tan>0){
-                            support[i][0]+=delta_tan*(checkStyle(i)/(checkStyle(i)+checkStyle(j)+checkStyle(k)));
-                            support[j][1]+=delta_tan*(checkStyle(j)/(checkStyle(i)+checkStyle(j)+checkStyle(k)));
-                            support[k][2]+=delta_tan*(checkStyle(k)/(checkStyle(i)+checkStyle(j)+checkStyle(k)));
+                            support[i][0]+=delta_tan;
+                            support[j][1]+=delta_tan;
+                            support[k][2]+=delta_tan;
                         }else if(delta_tan<0){
-                            oppose[i][0]+=delta_tan*(checkStyle(i)/(checkStyle(i)+checkStyle(j)+checkStyle(k)));
-                            oppose[j][1]+=delta_tan*(checkStyle(j)/(checkStyle(i)+checkStyle(j)+checkStyle(k)));
-                            oppose[k][2]+=delta_tan*(checkStyle(k)/(checkStyle(i)+checkStyle(j)+checkStyle(k)));
+                            oppose[i][0]+=delta_tan;
+                            oppose[j][1]+=delta_tan;
+                            oppose[k][2]+=delta_tan;
                         }
                     }
                 }
             }
+            if(TableA_Odds_and_Name[i][2]==1){
+                No1 = i;
+            }
         }
 
-        function score(i,j){
-            return support[i][j]**2/(support[i][j]-oppose[i][j]);
+        function score(i){
+            return support[i][0]+support[i][1]+support[i][2];
         }
 
 
@@ -567,11 +452,9 @@
         let gc = document.querySelector(".grid_container");
         for (let i = 0; i < N_uma; i++) {
             if(TableA_Odds_and_Name[i][3]!==Infinity){
-                const i_start=6*(i+1);
-                const s1=10000*(support[i][0]+support[i][1]+support[i][2]);
-                gc.children[i_start+3].textContent = (s1).toFixed(0);/*
-                gc.children[i_start+4].textContent = ().toFixed(0);
-                gc.children[i_start+5].textContent = (s3).toFixed(0);*/
+                const i_start=4*(i+1);
+                const s1=score(i)/score(No1);
+                gc.children[i_start+3].textContent = (s1).toFixed(2);
             }
         }
     }
